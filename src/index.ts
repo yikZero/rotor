@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { execSync } from 'node:child_process';
-import { cpSync, existsSync, renameSync, rmSync } from 'node:fs';
+import { cpSync, existsSync, readFileSync, renameSync, rmSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import {
   cancel,
@@ -13,7 +13,7 @@ import {
   spinner,
   text,
 } from '@clack/prompts';
-import { MODULES, VERSION } from './constants';
+import { MODULES } from './constants';
 import {
   removeModuleFiles,
   replaceProjectName,
@@ -25,6 +25,11 @@ import {
 
 function getTemplatePath(): string {
   return resolve(import.meta.dirname, '..', 'template');
+}
+
+function getVersion(): string {
+  const pkgPath = resolve(import.meta.dirname, '..', 'package.json');
+  return JSON.parse(readFileSync(pkgPath, 'utf-8')).version;
 }
 
 function validateProjectName(name: string | undefined): string | undefined {
@@ -40,13 +45,13 @@ async function main() {
 
   // Handle flags before interactive prompts
   if (args.includes('--version') || args.includes('-v')) {
-    console.log(VERSION);
+    console.log(getVersion());
     process.exit(0);
   }
 
   if (args.includes('--help') || args.includes('-h')) {
     console.log(`
-  create-rotor v${VERSION}
+  create-rotor v${getVersion()}
 
   Usage: create-rotor [project-name]
 
@@ -117,6 +122,16 @@ async function main() {
     process.exit(0);
   }
 
+  // Install dependencies
+  const installDeps = await confirm({
+    message: 'Install dependencies?',
+    initialValue: true,
+  });
+  if (isCancel(installDeps)) {
+    cancel('Cancelled.');
+    process.exit(0);
+  }
+
   // Scaffold
   const s = spinner();
   s.start('Creating project...');
@@ -137,20 +152,44 @@ async function main() {
     trimCssShadcn(join(targetDir, 'app', 'globals.css'));
   }
 
-  // Git init
+  s.stop('Project created!');
+
+  // Install dependencies
+  if (installDeps) {
+    const installSpinner = spinner();
+    installSpinner.start('Installing dependencies...');
+    try {
+      execSync('bun install', { cwd: targetDir, stdio: 'ignore' });
+      installSpinner.stop('Dependencies installed!');
+    } catch {
+      installSpinner.stop(
+        'Failed to install dependencies. Run "bun install" manually.',
+      );
+    }
+  }
+
+  // Git init (after install so bun.lock is included in initial commit)
   if (initGit) {
     execSync('git init', { cwd: targetDir, stdio: 'ignore' });
     execSync('git add -A', { cwd: targetDir, stdio: 'ignore' });
     execSync('git commit -m "init"', { cwd: targetDir, stdio: 'ignore' });
   }
 
-  s.stop('Project created!');
+  // Build outro message
+  const steps: string[] = [`cd ${projectName}`];
 
-  outro(`Done! Next steps:
+  if (!installDeps) {
+    steps.push('bun install');
+  }
 
-  cd ${projectName}
-  bun install
-  bun dev`);
+  const envPath = join(targetDir, '.env.example');
+  if (readFileSync(envPath, 'utf-8').trim().length > 0) {
+    steps.push('cp .env.example .env  # configure environment variables');
+  }
+
+  steps.push('bun dev');
+
+  outro(`Done! Next steps:\n\n  ${steps.join('\n  ')}`);
 }
 
 main().catch(console.error);

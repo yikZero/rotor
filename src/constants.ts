@@ -62,5 +62,3 @@ export const MODULES: Record<string, ModuleDefinition> = {
     envMarker: 'ai',
   },
 };
-
-export const VERSION = '0.1.3';

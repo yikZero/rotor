@@ -91,7 +91,7 @@ var require_src = __commonJS((exports, module) => {
 
 // src/index.ts
 import { execSync } from "node:child_process";
-import { cpSync, existsSync as existsSync2, renameSync, rmSync as rmSync2 } from "node:fs";
+import { cpSync, existsSync as existsSync2, readFileSync as readFileSync2, renameSync, rmSync as rmSync2 } from "node:fs";
 import { join as join2, resolve } from "node:path";
 
 // node_modules/@clack/core/dist/index.mjs
@@ -1206,7 +1206,6 @@ var MODULES = {
     envMarker: "ai"
   }
 };
-var VERSION = "0.1.3";
 
 // src/helpers.ts
 import { existsSync, readFileSync, rmSync, writeFileSync } from "node:fs";
@@ -1333,6 +1332,10 @@ function trimCssShadcn(cssPath) {
 function getTemplatePath() {
   return resolve(import.meta.dirname, "..", "template");
 }
+function getVersion() {
+  const pkgPath = resolve(import.meta.dirname, "..", "package.json");
+  return JSON.parse(readFileSync2(pkgPath, "utf-8")).version;
+}
 function validateProjectName(name) {
   if (!name)
     return "Project name is required";
@@ -1344,12 +1347,12 @@ function validateProjectName(name) {
 async function main() {
   const args = process.argv.slice(2);
   if (args.includes("--version") || args.includes("-v")) {
-    console.log(VERSION);
+    console.log(getVersion());
     process.exit(0);
   }
   if (args.includes("--help") || args.includes("-h")) {
     console.log(`
-  create-rotor v${VERSION}
+  create-rotor v${getVersion()}
 
   Usage: create-rotor [project-name]
 
@@ -1409,6 +1412,14 @@ async function main() {
     Nt("Cancelled.");
     process.exit(0);
   }
+  const installDeps = await Rt({
+    message: "Install dependencies?",
+    initialValue: true
+  });
+  if (Ct(installDeps)) {
+    Nt("Cancelled.");
+    process.exit(0);
+  }
   const s = be();
   s.start("Creating project...");
   const templatePath = getTemplatePath();
@@ -1422,16 +1433,34 @@ async function main() {
   if (!selectedModules.includes("shadcn")) {
     trimCssShadcn(join2(targetDir, "app", "globals.css"));
   }
+  s.stop("Project created!");
+  if (installDeps) {
+    const installSpinner = be();
+    installSpinner.start("Installing dependencies...");
+    try {
+      execSync("bun install", { cwd: targetDir, stdio: "ignore" });
+      installSpinner.stop("Dependencies installed!");
+    } catch {
+      installSpinner.stop('Failed to install dependencies. Run "bun install" manually.');
+    }
+  }
   if (initGit) {
     execSync("git init", { cwd: targetDir, stdio: "ignore" });
     execSync("git add -A", { cwd: targetDir, stdio: "ignore" });
     execSync('git commit -m "init"', { cwd: targetDir, stdio: "ignore" });
   }
-  s.stop("Project created!");
+  const steps = [`cd ${projectName}`];
+  if (!installDeps) {
+    steps.push("bun install");
+  }
+  const envPath = join2(targetDir, ".env.example");
+  if (readFileSync2(envPath, "utf-8").trim().length > 0) {
+    steps.push("cp .env.example .env  # configure environment variables");
+  }
+  steps.push("bun dev");
   Gt(`Done! Next steps:
 
-  cd ${projectName}
-  bun install
-  bun dev`);
+  ${steps.join(`
+  `)}`);
 }
 main().catch(console.error);
