@@ -16,6 +16,6 @@
     }
   },
   "files": {
-    "ignore": [".next", "node_modules"]
+    "includes": ["app/**", "lib/**", "components/**"]
   }
 }

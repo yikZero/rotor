@@ -16,6 +16,6 @@
     }
   },
   "files": {
-    "ignore": ["dist", "template"]
+    "includes": ["src/**"]
   }
 }

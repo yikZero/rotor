@@ -1,26 +1,26 @@
 #!/usr/bin/env node
 
-import {
-  intro,
-  outro,
-  text,
-  multiselect,
-  confirm,
-  isCancel,
-  cancel,
-  spinner,
-} from '@clack/prompts';
-import { cpSync, existsSync, rmSync } from 'node:fs';
-import { resolve, join } from 'node:path';
 import { execSync } from 'node:child_process';
+import { cpSync, existsSync, renameSync, rmSync } from 'node:fs';
+import { join, resolve } from 'node:path';
+import {
+  cancel,
+  confirm,
+  intro,
+  isCancel,
+  multiselect,
+  outro,
+  spinner,
+  text,
+} from '@clack/prompts';
 import { MODULES, VERSION } from './constants';
 import {
-  trimDependencies,
-  trimScripts,
-  trimEnvFile,
   removeModuleFiles,
   replaceProjectName,
   trimCssShadcn,
+  trimDependencies,
+  trimEnvFile,
+  trimScripts,
 } from './helpers';
 
 function getTemplatePath(): string {
@@ -123,6 +123,9 @@ async function main() {
 
   const templatePath = getTemplatePath();
   cpSync(templatePath, targetDir, { recursive: true });
+
+  // Rename gitignore → .gitignore (npm strips .gitignore during publish)
+  renameSync(join(targetDir, 'gitignore'), join(targetDir, '.gitignore'));
 
   replaceProjectName(targetDir, projectName);
   removeModuleFiles(targetDir, selectedModules);

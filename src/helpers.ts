@@ -1,4 +1,4 @@
-import { readFileSync, writeFileSync, existsSync, rmSync } from 'node:fs';
+import { existsSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { MODULES } from './constants';
 
@@ -24,10 +24,7 @@ export function trimDependencies(
   writeFileSync(pkgPath, `${JSON.stringify(pkg, null, 2)}\n`);
 }
 
-export function trimScripts(
-  pkgPath: string,
-  selectedModules: string[],
-): void {
+export function trimScripts(pkgPath: string, selectedModules: string[]): void {
   const pkg = JSON.parse(readFileSync(pkgPath, 'utf-8'));
 
   if (!selectedModules.includes('drizzle')) {
@@ -41,10 +38,7 @@ export function trimScripts(
   writeFileSync(pkgPath, `${JSON.stringify(pkg, null, 2)}\n`);
 }
 
-export function trimEnvFile(
-  envPath: string,
-  selectedModules: string[],
-): void {
+export function trimEnvFile(envPath: string, selectedModules: string[]): void {
   if (!existsSync(envPath)) return;
 
   const content = readFileSync(envPath, 'utf-8');
@@ -149,6 +143,9 @@ export function trimCssShadcn(cssPath: string): void {
     }
   }
 
-  const cleaned = result.join('\n').replace(/\n{3,}/g, '\n\n').trim();
+  const cleaned = result
+    .join('\n')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
   writeFileSync(cssPath, `${cleaned}\n`);
 }

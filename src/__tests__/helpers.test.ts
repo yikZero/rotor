@@ -1,21 +1,21 @@
-import { describe, expect, test, beforeEach, afterEach } from 'bun:test';
+import { afterEach, beforeEach, describe, expect, test } from 'bun:test';
 import {
-  mkdtempSync,
-  mkdirSync,
-  writeFileSync,
-  readFileSync,
   existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
   rmSync,
+  writeFileSync,
 } from 'node:fs';
-import { join } from 'node:path';
 import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import {
-  trimDependencies,
-  trimEnvFile,
   removeModuleFiles,
   replaceProjectName,
-  trimScripts,
   trimCssShadcn,
+  trimDependencies,
+  trimEnvFile,
+  trimScripts,
 } from '../helpers';
 
 let tempDir: string;
@@ -240,9 +240,9 @@ describe('replaceProjectName', () => {
     expect(readFileSync(join(tempDir, 'package.json'), 'utf-8')).toContain(
       'my-cool-app',
     );
-    expect(
-      readFileSync(join(tempDir, 'app', 'layout.tsx'), 'utf-8'),
-    ).toContain('my-cool-app');
+    expect(readFileSync(join(tempDir, 'app', 'layout.tsx'), 'utf-8')).toContain(
+      'my-cool-app',
+    );
     expect(readFileSync(join(tempDir, 'README.md'), 'utf-8')).toContain(
       'my-cool-app',
     );
