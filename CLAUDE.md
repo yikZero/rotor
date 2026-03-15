@@ -17,13 +17,15 @@ bun test             # Run all tests (Bun native test runner)
 bun test src/__tests__/helpers.test.ts  # Run specific test file
 ```
 
+To validate template files against their own Biome config: `cd template && bunx @biomejs/biome check .`
+
 ## Architecture
 
 **Two distinct codebases in one repo:**
 
 1. **`src/`** — The CLI tool itself (TypeScript, runs in Node/Bun)
    - `index.ts` — Entry point: arg parsing, @clack/prompts interactive flow, orchestrates scaffolding
-   - `constants.ts` — Module definitions (MODULES record) mapping each optional feature to its files, deps, and markers. Also exports VERSION.
+   - `constants.ts` — Module definitions (MODULES record) mapping each optional feature to its files, deps, and markers
    - `helpers.ts` — Pure functions for template customization: trim deps, remove files, strip env/CSS sections, replace placeholders
 
 2. **`template/`** — A complete Next.js project with ALL optional modules included. The CLI copies this then removes what wasn't selected.
@@ -42,12 +44,14 @@ When adding a new optional module: add its definition to MODULES, add its templa
 
 ## Template Conventions
 
-- `{{PROJECT_NAME}}` placeholder in: package.json, layout.tsx, page.tsx, README.md
+- `{{PROJECT_NAME}}` placeholder in: package.json, layout.tsx, README.md (NOT in JSX — Biome reformats `{{` in JSX)
 - `template/gitignore` (no dot) — npm strips `.gitignore` during publish; the CLI renames it after copy
-- Template's `biome.json` is independent from the CLI's — scoped to app/lib/components
+- Template's `biome.json` is independent from the CLI's — scoped to app/lib/components, with Tailwind directive parsing enabled
+- Version is read from `package.json` at runtime (`getVersion()`) — no hardcoded version constant
 
 ## Build & Publish
 
 - `bun build` bundles src/ into `dist/index.js`; template/ ships as-is (NOT bundled)
 - `package.json` `files` field: `["dist", "template"]`
 - Template path resolved at runtime via `import.meta.dirname`
+- CI runs on push/PR to master; npm publish triggers automatically on GitHub release (requires `NPM_TOKEN` secret)
