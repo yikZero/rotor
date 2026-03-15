@@ -1,0 +1,23 @@
+{
+  "name": "create-rotor",
+  "version": "0.1.0",
+  "description": "Scaffold Next.js projects with Bun, Tailwind, Biome, and more",
+  "type": "module",
+  "bin": "dist/index.js",
+  "files": ["dist", "template"],
+  "scripts": {
+    "build": "bun build src/index.ts --outdir dist --target node",
+    "dev": "bun run src/index.ts",
+    "check": "bunx @biomejs/biome check --write ."
+  },
+  "dependencies": {
+    "@clack/prompts": "1.1.0"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.4.7",
+    "@types/node": "25.5.0",
+    "typescript": "5.9.3"
+  },
+  "keywords": ["create", "nextjs", "bun", "tailwind", "scaffold", "template"],
+  "license": "MIT"
+}
