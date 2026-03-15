@@ -230,10 +230,6 @@ describe('replaceProjectName', () => {
       'title: "{{PROJECT_NAME}}"',
     );
     writeFileSync(join(tempDir, 'README.md'), '# {{PROJECT_NAME}}');
-    writeFileSync(
-      join(tempDir, 'app', 'page.tsx'),
-      '<h1>{{PROJECT_NAME}}</h1>',
-    );
 
     replaceProjectName(tempDir, 'my-cool-app');
 
@@ -244,9 +240,6 @@ describe('replaceProjectName', () => {
       'my-cool-app',
     );
     expect(readFileSync(join(tempDir, 'README.md'), 'utf-8')).toContain(
-      'my-cool-app',
-    );
-    expect(readFileSync(join(tempDir, 'app', 'page.tsx'), 'utf-8')).toContain(
       'my-cool-app',
     );
   });

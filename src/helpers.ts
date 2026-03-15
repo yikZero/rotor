@@ -103,12 +103,7 @@ export function replaceProjectName(
   projectDir: string,
   projectName: string,
 ): void {
-  const filesToReplace = [
-    'package.json',
-    'app/layout.tsx',
-    'app/page.tsx',
-    'README.md',
-  ];
+  const filesToReplace = ['package.json', 'app/layout.tsx', 'README.md'];
 
   for (const file of filesToReplace) {
     const filePath = join(projectDir, file);
