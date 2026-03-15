@@ -1206,7 +1206,7 @@ var MODULES = {
     envMarker: "ai"
   }
 };
-var VERSION = "0.1.2";
+var VERSION = "0.1.3";
 
 // src/helpers.ts
 import { existsSync, readFileSync, rmSync, writeFileSync } from "node:fs";
