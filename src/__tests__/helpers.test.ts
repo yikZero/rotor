@@ -331,6 +331,32 @@ describe('trimCssShadcn', () => {
     expect(content).toContain("@import 'tailwindcss'")
   })
 
+  test('removes shadcn CSS imports within markers', () => {
+    const cssPath = join(tempDir, 'globals.css')
+    writeFileSync(
+      cssPath,
+      [
+        '@import "tailwindcss";',
+        '/* [shadcn] */',
+        '@import "tw-animate-css";',
+        '@import "shadcn/tailwind.css";',
+        '/* [/shadcn] */',
+        '',
+        '@theme inline {',
+        '  --font-sans: var(--font-geist-sans);',
+        '}',
+      ].join('\n'),
+    )
+
+    trimCssShadcn(cssPath)
+
+    const content = readFileSync(cssPath, 'utf-8')
+    expect(content).not.toContain('tw-animate-css')
+    expect(content).not.toContain('shadcn/tailwind.css')
+    expect(content).toContain('@import "tailwindcss"')
+    expect(content).toContain('--font-sans')
+  })
+
   test('preserves all content when markers are absent', () => {
     const cssPath = join(tempDir, 'globals.css')
     const original = "@import 'tailwindcss';\n\nbody { margin: 0; }\n"
