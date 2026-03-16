@@ -19,6 +19,8 @@ export const MODULES: Record<string, ModuleDefinition> = {
       clsx: '2.1.1',
       'tailwind-merge': '3.5.0',
       'lucide-react': '0.577.0',
+      shadcn: '4.0.8',
+      'tw-animate-css': '1.4.0',
     },
     devDependencies: {},
     envMarker: 'shadcn',
