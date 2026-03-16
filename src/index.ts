@@ -15,12 +15,12 @@ import {
 } from '@clack/prompts';
 import { MODULES } from './constants';
 import {
+  removeHuskyFiles,
   removeModuleFiles,
   replaceProjectName,
   trimCssShadcn,
-  trimDependencies,
   trimEnvFile,
-  trimScripts,
+  trimPackageJson,
 } from './helpers';
 
 function getTemplatePath(): string {
@@ -144,46 +144,70 @@ async function main() {
 
   replaceProjectName(targetDir, projectName);
   removeModuleFiles(targetDir, selectedModules);
-  trimDependencies(join(targetDir, 'package.json'), selectedModules);
-  trimScripts(join(targetDir, 'package.json'), selectedModules);
-  trimEnvFile(join(targetDir, '.env.example'), selectedModules);
+  trimPackageJson(join(targetDir, 'package.json'), selectedModules, {
+    removeHusky: !initGit,
+  });
+  const hasEnv = trimEnvFile(join(targetDir, '.env.example'), selectedModules);
 
   if (!selectedModules.includes('shadcn')) {
     trimCssShadcn(join(targetDir, 'app', 'globals.css'));
   }
 
+  if (!initGit) {
+    removeHuskyFiles(targetDir);
+  }
+
   s.stop('Project created!');
 
   // Install dependencies
+  let installed = false;
   if (installDeps) {
     const installSpinner = spinner();
     installSpinner.start('Installing dependencies...');
+    let hasBun = false;
     try {
-      execSync('bun install', { cwd: targetDir, stdio: 'ignore' });
-      installSpinner.stop('Dependencies installed!');
+      execSync('bun --version', { stdio: 'ignore' });
+      hasBun = true;
     } catch {
       installSpinner.stop(
-        'Failed to install dependencies. Run "bun install" manually.',
+        'Bun not found. Install it from https://bun.sh then run "bun install".',
       );
+    }
+    if (hasBun) {
+      try {
+        execSync('bun install', { cwd: targetDir, stdio: 'ignore' });
+        installSpinner.stop('Dependencies installed!');
+        installed = true;
+      } catch {
+        installSpinner.stop(
+          'Failed to install dependencies. Run "bun install" manually.',
+        );
+      }
     }
   }
 
   // Git init (after install so bun.lock is included in initial commit)
   if (initGit) {
-    execSync('git init', { cwd: targetDir, stdio: 'ignore' });
-    execSync('git add -A', { cwd: targetDir, stdio: 'ignore' });
-    execSync('git commit -m "init"', { cwd: targetDir, stdio: 'ignore' });
+    try {
+      execSync('git init', { cwd: targetDir, stdio: 'ignore' });
+      execSync('git add -A', { cwd: targetDir, stdio: 'ignore' });
+      execSync('git commit -m "chore: init from create-rotor"', {
+        cwd: targetDir,
+        stdio: 'ignore',
+      });
+    } catch {
+      // git not installed or not configured — skip silently
+    }
   }
 
   // Build outro message
   const steps: string[] = [`cd ${projectName}`];
 
-  if (!installDeps) {
+  if (!installed) {
     steps.push('bun install');
   }
 
-  const envPath = join(targetDir, '.env.example');
-  if (readFileSync(envPath, 'utf-8').trim().length > 0) {
+  if (hasEnv) {
     steps.push('cp .env.example .env  # configure environment variables');
   }
 

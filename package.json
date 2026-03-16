@@ -1,6 +1,6 @@
 {
   "name": "create-rotor",
-  "version": "0.2.2",
+  "version": "0.3.0",
   "description": "Scaffold Next.js projects with Bun, Tailwind, Biome, and more",
   "type": "module",
   "bin": "dist/index.js",

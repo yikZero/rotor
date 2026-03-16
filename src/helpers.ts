@@ -2,11 +2,14 @@ import { existsSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { MODULES } from './constants';
 
-export function trimDependencies(
+export function trimPackageJson(
   pkgPath: string,
   selectedModules: string[],
+  options?: { removeHusky?: boolean },
 ): void {
   const pkg = JSON.parse(readFileSync(pkgPath, 'utf-8'));
+
+  // Remove unselected module dependencies
   const unselected = Object.keys(MODULES).filter(
     (m) => !selectedModules.includes(m),
   );
@@ -21,12 +24,7 @@ export function trimDependencies(
     }
   }
 
-  writeFileSync(pkgPath, `${JSON.stringify(pkg, null, 2)}\n`);
-}
-
-export function trimScripts(pkgPath: string, selectedModules: string[]): void {
-  const pkg = JSON.parse(readFileSync(pkgPath, 'utf-8'));
-
+  // Remove drizzle scripts if not selected
   if (!selectedModules.includes('drizzle')) {
     for (const key of Object.keys(pkg.scripts || {})) {
       if (key.startsWith('db:')) {
@@ -35,11 +33,21 @@ export function trimScripts(pkgPath: string, selectedModules: string[]): void {
     }
   }
 
+  // Remove husky/lint-staged if git not initialized
+  if (options?.removeHusky) {
+    delete pkg.devDependencies?.husky;
+    delete pkg.devDependencies?.['lint-staged'];
+    delete pkg.scripts?.prepare;
+  }
+
   writeFileSync(pkgPath, `${JSON.stringify(pkg, null, 2)}\n`);
 }
 
-export function trimEnvFile(envPath: string, selectedModules: string[]): void {
-  if (!existsSync(envPath)) return;
+export function trimEnvFile(
+  envPath: string,
+  selectedModules: string[],
+): boolean {
+  if (!existsSync(envPath)) return false;
 
   const content = readFileSync(envPath, 'utf-8');
   const lines = content.split('\n');
@@ -78,6 +86,12 @@ export function trimEnvFile(envPath: string, selectedModules: string[]): void {
     .trim();
 
   writeFileSync(envPath, cleaned ? `${cleaned}\n` : '');
+  return cleaned.length > 0;
+}
+
+export function removeHuskyFiles(projectDir: string): void {
+  rmSync(join(projectDir, '.husky'), { recursive: true, force: true });
+  rmSync(join(projectDir, '.lintstagedrc'), { force: true });
 }
 
 export function removeModuleFiles(
@@ -91,10 +105,7 @@ export function removeModuleFiles(
   for (const moduleName of unselected) {
     const mod = MODULES[moduleName];
     for (const file of mod.files) {
-      const filePath = join(projectDir, file);
-      if (existsSync(filePath)) {
-        rmSync(filePath, { recursive: true, force: true });
-      }
+      rmSync(join(projectDir, file), { recursive: true, force: true });
     }
   }
 }
@@ -103,7 +114,12 @@ export function replaceProjectName(
   projectDir: string,
   projectName: string,
 ): void {
-  const filesToReplace = ['package.json', 'app/layout.tsx', 'README.md'];
+  const filesToReplace = [
+    'package.json',
+    'app/layout.tsx',
+    'README.md',
+    'CLAUDE.md',
+  ];
 
   for (const file of filesToReplace) {
     const filePath = join(projectDir, file);

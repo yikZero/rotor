@@ -27,7 +27,7 @@ export const MODULES: Record<string, ModuleDefinition> = {
     name: 'swr',
     label: 'SWR',
     hint: 'Data fetching',
-    files: [],
+    files: ['lib/fetcher.ts'],
     dependencies: {
       swr: '2.4.1',
     },

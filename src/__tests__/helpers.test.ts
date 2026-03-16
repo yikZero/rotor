@@ -13,9 +13,8 @@ import {
   removeModuleFiles,
   replaceProjectName,
   trimCssShadcn,
-  trimDependencies,
   trimEnvFile,
-  trimScripts,
+  trimPackageJson,
 } from '../helpers';
 
 let tempDir: string;
@@ -28,13 +27,14 @@ afterEach(() => {
   rmSync(tempDir, { recursive: true, force: true });
 });
 
-describe('trimDependencies', () => {
+describe('trimPackageJson', () => {
   test('removes unselected module dependencies from package.json', () => {
     const pkgPath = join(tempDir, 'package.json');
     writeFileSync(
       pkgPath,
       JSON.stringify({
         name: 'test',
+        scripts: { dev: 'next dev --turbopack' },
         dependencies: {
           next: '16.1.6',
           react: '19.2.4',
@@ -50,8 +50,7 @@ describe('trimDependencies', () => {
       }),
     );
 
-    // Only SWR selected — drizzle deps should be removed, swr kept
-    trimDependencies(pkgPath, ['swr']);
+    trimPackageJson(pkgPath, ['swr']);
 
     const pkg = JSON.parse(readFileSync(pkgPath, 'utf-8'));
     expect(pkg.dependencies.swr).toBe('2.4.1');
@@ -69,12 +68,13 @@ describe('trimDependencies', () => {
       pkgPath,
       JSON.stringify({
         name: 'test',
+        scripts: { dev: 'next dev --turbopack' },
         dependencies: { next: '16.1.6', swr: '2.4.1', ai: '6.0.116' },
         devDependencies: { typescript: '5.9.3' },
       }),
     );
 
-    trimDependencies(pkgPath, ['shadcn', 'swr', 'drizzle', 'ai']);
+    trimPackageJson(pkgPath, ['shadcn', 'swr', 'drizzle', 'ai']);
 
     const pkg = JSON.parse(readFileSync(pkgPath, 'utf-8'));
     expect(pkg.dependencies.swr).toBe('2.4.1');
@@ -87,6 +87,7 @@ describe('trimDependencies', () => {
       pkgPath,
       JSON.stringify({
         name: 'test',
+        scripts: { dev: 'next dev --turbopack' },
         dependencies: {
           next: '16.1.6',
           swr: '2.4.1',
@@ -97,7 +98,7 @@ describe('trimDependencies', () => {
       }),
     );
 
-    trimDependencies(pkgPath, []);
+    trimPackageJson(pkgPath, []);
 
     const pkg = JSON.parse(readFileSync(pkgPath, 'utf-8'));
     expect(pkg.dependencies.next).toBe('16.1.6');
@@ -106,9 +107,7 @@ describe('trimDependencies', () => {
     expect(pkg.dependencies['drizzle-orm']).toBeUndefined();
     expect(pkg.devDependencies['drizzle-kit']).toBeUndefined();
   });
-});
 
-describe('trimScripts', () => {
   test('removes drizzle scripts when drizzle not selected', () => {
     const pkgPath = join(tempDir, 'package.json');
     writeFileSync(
@@ -122,10 +121,12 @@ describe('trimScripts', () => {
           'db:migrate': 'drizzle-kit migrate',
           'db:studio': 'drizzle-kit studio',
         },
+        dependencies: { next: '16.1.6' },
+        devDependencies: { typescript: '5.9.3' },
       }),
     );
 
-    trimScripts(pkgPath, []);
+    trimPackageJson(pkgPath, []);
 
     const pkg = JSON.parse(readFileSync(pkgPath, 'utf-8'));
     expect(pkg.scripts.dev).toBe('next dev --turbopack');
@@ -146,15 +147,70 @@ describe('trimScripts', () => {
           'db:generate': 'drizzle-kit generate',
           'db:migrate': 'drizzle-kit migrate',
         },
+        dependencies: { next: '16.1.6' },
+        devDependencies: { typescript: '5.9.3' },
       }),
     );
 
-    trimScripts(pkgPath, ['drizzle']);
+    trimPackageJson(pkgPath, ['drizzle']);
 
     const pkg = JSON.parse(readFileSync(pkgPath, 'utf-8'));
     expect(pkg.scripts.dev).toBe('next dev --turbopack');
     expect(pkg.scripts['db:generate']).toBe('drizzle-kit generate');
     expect(pkg.scripts['db:migrate']).toBe('drizzle-kit migrate');
+  });
+
+  test('removes husky and lint-staged when removeHusky is true', () => {
+    const pkgPath = join(tempDir, 'package.json');
+    writeFileSync(
+      pkgPath,
+      JSON.stringify({
+        name: 'test',
+        scripts: {
+          dev: 'next dev --turbopack',
+          prepare: 'husky',
+        },
+        dependencies: { next: '16.1.6' },
+        devDependencies: {
+          typescript: '5.9.3',
+          husky: '9.1.7',
+          'lint-staged': '16.4.0',
+        },
+      }),
+    );
+
+    trimPackageJson(pkgPath, [], { removeHusky: true });
+
+    const pkg = JSON.parse(readFileSync(pkgPath, 'utf-8'));
+    expect(pkg.devDependencies.husky).toBeUndefined();
+    expect(pkg.devDependencies['lint-staged']).toBeUndefined();
+    expect(pkg.scripts.prepare).toBeUndefined();
+    expect(pkg.scripts.dev).toBe('next dev --turbopack');
+    expect(pkg.devDependencies.typescript).toBe('5.9.3');
+  });
+
+  test('keeps husky when removeHusky is false', () => {
+    const pkgPath = join(tempDir, 'package.json');
+    writeFileSync(
+      pkgPath,
+      JSON.stringify({
+        name: 'test',
+        scripts: { dev: 'next dev --turbopack', prepare: 'husky' },
+        dependencies: { next: '16.1.6' },
+        devDependencies: {
+          typescript: '5.9.3',
+          husky: '9.1.7',
+          'lint-staged': '16.4.0',
+        },
+      }),
+    );
+
+    trimPackageJson(pkgPath, []);
+
+    const pkg = JSON.parse(readFileSync(pkgPath, 'utf-8'));
+    expect(pkg.devDependencies.husky).toBe('9.1.7');
+    expect(pkg.devDependencies['lint-staged']).toBe('16.4.0');
+    expect(pkg.scripts.prepare).toBe('husky');
   });
 });
 
