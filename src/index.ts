@@ -149,9 +149,7 @@ async function main() {
   });
   const hasEnv = trimEnvFile(join(targetDir, '.env.example'), selectedModules);
 
-  if (!selectedModules.includes('shadcn')) {
-    trimCssShadcn(join(targetDir, 'app', 'globals.css'));
-  }
+  trimCssShadcn(join(targetDir, 'app', 'globals.css'), !selectedModules.includes('shadcn'));
 
   if (!initGit) {
     removeHuskyFiles(targetDir);

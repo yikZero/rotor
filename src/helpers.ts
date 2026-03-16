@@ -132,7 +132,7 @@ export function replaceProjectName(
   }
 }
 
-export function trimCssShadcn(cssPath: string): void {
+export function trimCssShadcn(cssPath: string, removeContent = true): void {
   if (!existsSync(cssPath)) return;
 
   const content = readFileSync(cssPath, 'utf-8');
@@ -149,7 +149,7 @@ export function trimCssShadcn(cssPath: string): void {
       skipping = false;
       continue;
     }
-    if (!skipping) {
+    if (!skipping || !removeContent) {
       result.push(line);
     }
   }
