@@ -1301,7 +1301,7 @@ function replaceProjectName(projectDir, projectName) {
     writeFileSync(filePath, content.replaceAll("{{PROJECT_NAME}}", projectName));
   }
 }
-function trimCssShadcn(cssPath) {
+function trimCssShadcn(cssPath, removeContent = true) {
   if (!existsSync(cssPath))
     return;
   const content = readFileSync(cssPath, "utf-8");
@@ -1318,7 +1318,7 @@ function trimCssShadcn(cssPath) {
       skipping = false;
       continue;
     }
-    if (!skipping) {
+    if (!skipping || !removeContent) {
       result.push(line);
     }
   }
@@ -1433,9 +1433,7 @@ async function main() {
     removeHusky: !initGit
   });
   const hasEnv = trimEnvFile(join2(targetDir, ".env.example"), selectedModules);
-  if (!selectedModules.includes("shadcn")) {
-    trimCssShadcn(join2(targetDir, "app", "globals.css"));
-  }
+  trimCssShadcn(join2(targetDir, "app", "globals.css"), !selectedModules.includes("shadcn"));
   if (!initGit) {
     removeHuskyFiles(targetDir);
   }
