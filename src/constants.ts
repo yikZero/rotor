@@ -1,11 +1,11 @@
 export interface ModuleDefinition {
-  name: string;
-  label: string;
-  hint: string;
-  files: string[];
-  dependencies: Record<string, string>;
-  devDependencies: Record<string, string>;
-  envMarker: string;
+  name: string
+  label: string
+  hint: string
+  files: string[]
+  dependencies: Record<string, string>
+  devDependencies: Record<string, string>
+  envMarker: string
 }
 
 export const MODULES: Record<string, ModuleDefinition> = {
@@ -61,4 +61,4 @@ export const MODULES: Record<string, ModuleDefinition> = {
     devDependencies: {},
     envMarker: 'ai',
   },
-};
+}

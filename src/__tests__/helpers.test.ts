@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, test } from 'bun:test';
+import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
 import {
   existsSync,
   mkdirSync,
@@ -6,30 +6,30 @@ import {
   readFileSync,
   rmSync,
   writeFileSync,
-} from 'node:fs';
-import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+} from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 import {
   removeModuleFiles,
   replaceProjectName,
   trimCssShadcn,
   trimEnvFile,
   trimPackageJson,
-} from '../helpers';
+} from '../helpers'
 
-let tempDir: string;
+let tempDir: string
 
 beforeEach(() => {
-  tempDir = mkdtempSync(join(tmpdir(), 'rotor-test-'));
-});
+  tempDir = mkdtempSync(join(tmpdir(), 'rotor-test-'))
+})
 
 afterEach(() => {
-  rmSync(tempDir, { recursive: true, force: true });
-});
+  rmSync(tempDir, { recursive: true, force: true })
+})
 
 describe('trimPackageJson', () => {
   test('removes unselected module dependencies from package.json', () => {
-    const pkgPath = join(tempDir, 'package.json');
+    const pkgPath = join(tempDir, 'package.json')
     writeFileSync(
       pkgPath,
       JSON.stringify({
@@ -48,22 +48,22 @@ describe('trimPackageJson', () => {
           'drizzle-kit': '0.31.9',
         },
       }),
-    );
+    )
 
-    trimPackageJson(pkgPath, ['swr']);
+    trimPackageJson(pkgPath, ['swr'])
 
-    const pkg = JSON.parse(readFileSync(pkgPath, 'utf-8'));
-    expect(pkg.dependencies.swr).toBe('2.4.1');
-    expect(pkg.dependencies['drizzle-orm']).toBeUndefined();
-    expect(pkg.dependencies['@supabase/supabase-js']).toBeUndefined();
-    expect(pkg.dependencies.postgres).toBeUndefined();
-    expect(pkg.devDependencies['drizzle-kit']).toBeUndefined();
-    expect(pkg.dependencies.next).toBe('16.1.6');
-    expect(pkg.dependencies.react).toBe('19.2.4');
-  });
+    const pkg = JSON.parse(readFileSync(pkgPath, 'utf-8'))
+    expect(pkg.dependencies.swr).toBe('2.4.1')
+    expect(pkg.dependencies['drizzle-orm']).toBeUndefined()
+    expect(pkg.dependencies['@supabase/supabase-js']).toBeUndefined()
+    expect(pkg.dependencies.postgres).toBeUndefined()
+    expect(pkg.devDependencies['drizzle-kit']).toBeUndefined()
+    expect(pkg.dependencies.next).toBe('16.1.6')
+    expect(pkg.dependencies.react).toBe('19.2.4')
+  })
 
   test('keeps all dependencies when all modules selected', () => {
-    const pkgPath = join(tempDir, 'package.json');
+    const pkgPath = join(tempDir, 'package.json')
     writeFileSync(
       pkgPath,
       JSON.stringify({
@@ -72,17 +72,17 @@ describe('trimPackageJson', () => {
         dependencies: { next: '16.1.6', swr: '2.4.1', ai: '6.0.116' },
         devDependencies: { typescript: '5.9.3' },
       }),
-    );
+    )
 
-    trimPackageJson(pkgPath, ['shadcn', 'swr', 'drizzle', 'ai']);
+    trimPackageJson(pkgPath, ['shadcn', 'swr', 'drizzle', 'ai'])
 
-    const pkg = JSON.parse(readFileSync(pkgPath, 'utf-8'));
-    expect(pkg.dependencies.swr).toBe('2.4.1');
-    expect(pkg.dependencies.ai).toBe('6.0.116');
-  });
+    const pkg = JSON.parse(readFileSync(pkgPath, 'utf-8'))
+    expect(pkg.dependencies.swr).toBe('2.4.1')
+    expect(pkg.dependencies.ai).toBe('6.0.116')
+  })
 
   test('removes all optional deps when none selected', () => {
-    const pkgPath = join(tempDir, 'package.json');
+    const pkgPath = join(tempDir, 'package.json')
     writeFileSync(
       pkgPath,
       JSON.stringify({
@@ -96,20 +96,20 @@ describe('trimPackageJson', () => {
         },
         devDependencies: { typescript: '5.9.3', 'drizzle-kit': '0.31.9' },
       }),
-    );
+    )
 
-    trimPackageJson(pkgPath, []);
+    trimPackageJson(pkgPath, [])
 
-    const pkg = JSON.parse(readFileSync(pkgPath, 'utf-8'));
-    expect(pkg.dependencies.next).toBe('16.1.6');
-    expect(pkg.dependencies.swr).toBeUndefined();
-    expect(pkg.dependencies.ai).toBeUndefined();
-    expect(pkg.dependencies['drizzle-orm']).toBeUndefined();
-    expect(pkg.devDependencies['drizzle-kit']).toBeUndefined();
-  });
+    const pkg = JSON.parse(readFileSync(pkgPath, 'utf-8'))
+    expect(pkg.dependencies.next).toBe('16.1.6')
+    expect(pkg.dependencies.swr).toBeUndefined()
+    expect(pkg.dependencies.ai).toBeUndefined()
+    expect(pkg.dependencies['drizzle-orm']).toBeUndefined()
+    expect(pkg.devDependencies['drizzle-kit']).toBeUndefined()
+  })
 
   test('removes drizzle scripts when drizzle not selected', () => {
-    const pkgPath = join(tempDir, 'package.json');
+    const pkgPath = join(tempDir, 'package.json')
     writeFileSync(
       pkgPath,
       JSON.stringify({
@@ -124,20 +124,20 @@ describe('trimPackageJson', () => {
         dependencies: { next: '16.1.6' },
         devDependencies: { typescript: '5.9.3' },
       }),
-    );
+    )
 
-    trimPackageJson(pkgPath, []);
+    trimPackageJson(pkgPath, [])
 
-    const pkg = JSON.parse(readFileSync(pkgPath, 'utf-8'));
-    expect(pkg.scripts.dev).toBe('next dev --turbopack');
-    expect(pkg.scripts.build).toBe('next build');
-    expect(pkg.scripts['db:generate']).toBeUndefined();
-    expect(pkg.scripts['db:migrate']).toBeUndefined();
-    expect(pkg.scripts['db:studio']).toBeUndefined();
-  });
+    const pkg = JSON.parse(readFileSync(pkgPath, 'utf-8'))
+    expect(pkg.scripts.dev).toBe('next dev --turbopack')
+    expect(pkg.scripts.build).toBe('next build')
+    expect(pkg.scripts['db:generate']).toBeUndefined()
+    expect(pkg.scripts['db:migrate']).toBeUndefined()
+    expect(pkg.scripts['db:studio']).toBeUndefined()
+  })
 
   test('keeps drizzle scripts when drizzle is selected', () => {
-    const pkgPath = join(tempDir, 'package.json');
+    const pkgPath = join(tempDir, 'package.json')
     writeFileSync(
       pkgPath,
       JSON.stringify({
@@ -150,18 +150,18 @@ describe('trimPackageJson', () => {
         dependencies: { next: '16.1.6' },
         devDependencies: { typescript: '5.9.3' },
       }),
-    );
+    )
 
-    trimPackageJson(pkgPath, ['drizzle']);
+    trimPackageJson(pkgPath, ['drizzle'])
 
-    const pkg = JSON.parse(readFileSync(pkgPath, 'utf-8'));
-    expect(pkg.scripts.dev).toBe('next dev --turbopack');
-    expect(pkg.scripts['db:generate']).toBe('drizzle-kit generate');
-    expect(pkg.scripts['db:migrate']).toBe('drizzle-kit migrate');
-  });
+    const pkg = JSON.parse(readFileSync(pkgPath, 'utf-8'))
+    expect(pkg.scripts.dev).toBe('next dev --turbopack')
+    expect(pkg.scripts['db:generate']).toBe('drizzle-kit generate')
+    expect(pkg.scripts['db:migrate']).toBe('drizzle-kit migrate')
+  })
 
   test('removes husky and lint-staged when removeHusky is true', () => {
-    const pkgPath = join(tempDir, 'package.json');
+    const pkgPath = join(tempDir, 'package.json')
     writeFileSync(
       pkgPath,
       JSON.stringify({
@@ -177,20 +177,20 @@ describe('trimPackageJson', () => {
           'lint-staged': '16.4.0',
         },
       }),
-    );
+    )
 
-    trimPackageJson(pkgPath, [], { removeHusky: true });
+    trimPackageJson(pkgPath, [], { removeHusky: true })
 
-    const pkg = JSON.parse(readFileSync(pkgPath, 'utf-8'));
-    expect(pkg.devDependencies.husky).toBeUndefined();
-    expect(pkg.devDependencies['lint-staged']).toBeUndefined();
-    expect(pkg.scripts.prepare).toBeUndefined();
-    expect(pkg.scripts.dev).toBe('next dev --turbopack');
-    expect(pkg.devDependencies.typescript).toBe('5.9.3');
-  });
+    const pkg = JSON.parse(readFileSync(pkgPath, 'utf-8'))
+    expect(pkg.devDependencies.husky).toBeUndefined()
+    expect(pkg.devDependencies['lint-staged']).toBeUndefined()
+    expect(pkg.scripts.prepare).toBeUndefined()
+    expect(pkg.scripts.dev).toBe('next dev --turbopack')
+    expect(pkg.devDependencies.typescript).toBe('5.9.3')
+  })
 
   test('keeps husky when removeHusky is false', () => {
-    const pkgPath = join(tempDir, 'package.json');
+    const pkgPath = join(tempDir, 'package.json')
     writeFileSync(
       pkgPath,
       JSON.stringify({
@@ -203,20 +203,20 @@ describe('trimPackageJson', () => {
           'lint-staged': '16.4.0',
         },
       }),
-    );
+    )
 
-    trimPackageJson(pkgPath, []);
+    trimPackageJson(pkgPath, [])
 
-    const pkg = JSON.parse(readFileSync(pkgPath, 'utf-8'));
-    expect(pkg.devDependencies.husky).toBe('9.1.7');
-    expect(pkg.devDependencies['lint-staged']).toBe('16.4.0');
-    expect(pkg.scripts.prepare).toBe('husky');
-  });
-});
+    const pkg = JSON.parse(readFileSync(pkgPath, 'utf-8'))
+    expect(pkg.devDependencies.husky).toBe('9.1.7')
+    expect(pkg.devDependencies['lint-staged']).toBe('16.4.0')
+    expect(pkg.scripts.prepare).toBe('husky')
+  })
+})
 
 describe('trimEnvFile', () => {
   test('removes env sections for unselected modules', () => {
-    const envPath = join(tempDir, '.env.example');
+    const envPath = join(tempDir, '.env.example')
     writeFileSync(
       envPath,
       [
@@ -228,17 +228,17 @@ describe('trimEnvFile', () => {
         'OPENAI_API_KEY=sk-your-key',
         '# [/ai]',
       ].join('\n'),
-    );
+    )
 
-    trimEnvFile(envPath, ['ai']);
+    trimEnvFile(envPath, ['ai'])
 
-    const content = readFileSync(envPath, 'utf-8');
-    expect(content).not.toContain('DATABASE_URL');
-    expect(content).toContain('OPENAI_API_KEY');
-  });
+    const content = readFileSync(envPath, 'utf-8')
+    expect(content).not.toContain('DATABASE_URL')
+    expect(content).toContain('OPENAI_API_KEY')
+  })
 
   test('removes all optional sections when none selected', () => {
-    const envPath = join(tempDir, '.env.example');
+    const envPath = join(tempDir, '.env.example')
     writeFileSync(
       envPath,
       [
@@ -250,60 +250,57 @@ describe('trimEnvFile', () => {
         'OPENAI_API_KEY=x',
         '# [/ai]',
       ].join('\n'),
-    );
+    )
 
-    trimEnvFile(envPath, []);
+    trimEnvFile(envPath, [])
 
-    const content = readFileSync(envPath, 'utf-8').trim();
-    expect(content).toBe('');
-  });
-});
+    const content = readFileSync(envPath, 'utf-8').trim()
+    expect(content).toBe('')
+  })
+})
 
 describe('removeModuleFiles', () => {
   test('removes files for unselected modules', () => {
-    mkdirSync(join(tempDir, 'lib'), { recursive: true });
-    writeFileSync(join(tempDir, 'lib', 'db.ts'), 'export const db = {};');
-    writeFileSync(join(tempDir, 'drizzle.config.ts'), 'export default {};');
-    writeFileSync(join(tempDir, 'lib', 'ai.ts'), 'export const ai = {};');
+    mkdirSync(join(tempDir, 'lib'), { recursive: true })
+    writeFileSync(join(tempDir, 'lib', 'db.ts'), 'export const db = {};')
+    writeFileSync(join(tempDir, 'drizzle.config.ts'), 'export default {};')
+    writeFileSync(join(tempDir, 'lib', 'ai.ts'), 'export const ai = {};')
 
-    removeModuleFiles(tempDir, ['ai']);
+    removeModuleFiles(tempDir, ['ai'])
 
-    expect(existsSync(join(tempDir, 'lib', 'db.ts'))).toBe(false);
-    expect(existsSync(join(tempDir, 'drizzle.config.ts'))).toBe(false);
-    expect(existsSync(join(tempDir, 'lib', 'ai.ts'))).toBe(true);
-  });
-});
+    expect(existsSync(join(tempDir, 'lib', 'db.ts'))).toBe(false)
+    expect(existsSync(join(tempDir, 'drizzle.config.ts'))).toBe(false)
+    expect(existsSync(join(tempDir, 'lib', 'ai.ts'))).toBe(true)
+  })
+})
 
 describe('replaceProjectName', () => {
   test('replaces {{PROJECT_NAME}} in target files', () => {
-    mkdirSync(join(tempDir, 'app'), { recursive: true });
-    writeFileSync(
-      join(tempDir, 'package.json'),
-      '{"name": "{{PROJECT_NAME}}"}',
-    );
+    mkdirSync(join(tempDir, 'app'), { recursive: true })
+    writeFileSync(join(tempDir, 'package.json'), '{"name": "{{PROJECT_NAME}}"}')
     writeFileSync(
       join(tempDir, 'app', 'layout.tsx'),
       'title: "{{PROJECT_NAME}}"',
-    );
-    writeFileSync(join(tempDir, 'README.md'), '# {{PROJECT_NAME}}');
+    )
+    writeFileSync(join(tempDir, 'README.md'), '# {{PROJECT_NAME}}')
 
-    replaceProjectName(tempDir, 'my-cool-app');
+    replaceProjectName(tempDir, 'my-cool-app')
 
     expect(readFileSync(join(tempDir, 'package.json'), 'utf-8')).toContain(
       'my-cool-app',
-    );
+    )
     expect(readFileSync(join(tempDir, 'app', 'layout.tsx'), 'utf-8')).toContain(
       'my-cool-app',
-    );
+    )
     expect(readFileSync(join(tempDir, 'README.md'), 'utf-8')).toContain(
       'my-cool-app',
-    );
-  });
-});
+    )
+  })
+})
 
 describe('trimCssShadcn', () => {
   test('removes shadcn CSS sections when shadcn not selected', () => {
-    const cssPath = join(tempDir, 'globals.css');
+    const cssPath = join(tempDir, 'globals.css')
     writeFileSync(
       cssPath,
       [
@@ -323,26 +320,26 @@ describe('trimCssShadcn', () => {
         '}',
         '/* [/shadcn] */',
       ].join('\n'),
-    );
+    )
 
-    trimCssShadcn(cssPath);
+    trimCssShadcn(cssPath)
 
-    const content = readFileSync(cssPath, 'utf-8');
-    expect(content).not.toContain('@theme');
-    expect(content).not.toContain('@layer base');
-    expect(content).not.toContain(':root');
-    expect(content).toContain("@import 'tailwindcss'");
-  });
+    const content = readFileSync(cssPath, 'utf-8')
+    expect(content).not.toContain('@theme')
+    expect(content).not.toContain('@layer base')
+    expect(content).not.toContain(':root')
+    expect(content).toContain("@import 'tailwindcss'")
+  })
 
   test('preserves all content when markers are absent', () => {
-    const cssPath = join(tempDir, 'globals.css');
-    const original = "@import 'tailwindcss';\n\nbody { margin: 0; }\n";
-    writeFileSync(cssPath, original);
+    const cssPath = join(tempDir, 'globals.css')
+    const original = "@import 'tailwindcss';\n\nbody { margin: 0; }\n"
+    writeFileSync(cssPath, original)
 
-    trimCssShadcn(cssPath);
+    trimCssShadcn(cssPath)
 
-    const content = readFileSync(cssPath, 'utf-8');
-    expect(content).toContain("@import 'tailwindcss'");
-    expect(content).toContain('body { margin: 0; }');
-  });
-});
+    const content = readFileSync(cssPath, 'utf-8')
+    expect(content).toContain("@import 'tailwindcss'")
+    expect(content).toContain('body { margin: 0; }')
+  })
+})
