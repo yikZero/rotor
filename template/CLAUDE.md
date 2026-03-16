@@ -30,3 +30,10 @@ Next.js App Router project.
 - No unused imports/parameters, no barrel files, no `any`
 - Tailwind classes are auto-sorted (in `cn`, `clsx`, `cva` calls too)
 - Prefer `import type` / `export type` for type-only imports
+
+## Recommended Skills
+
+```bash
+claude skill install vercel-labs/next-skills/next-best-practices       # Next.js best practices
+claude skill install vercel-labs/agent-skills/react-best-practices      # React performance optimization
+```
