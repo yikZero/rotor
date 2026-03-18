@@ -40,7 +40,6 @@ describe('trimPackageJson', () => {
           react: '19.2.4',
           swr: '2.4.1',
           'drizzle-orm': '0.45.1',
-          '@supabase/supabase-js': '2.99.1',
           postgres: '3.4.8',
         },
         devDependencies: {
@@ -55,7 +54,6 @@ describe('trimPackageJson', () => {
     const pkg = JSON.parse(readFileSync(pkgPath, 'utf-8'))
     expect(pkg.dependencies.swr).toBe('2.4.1')
     expect(pkg.dependencies['drizzle-orm']).toBeUndefined()
-    expect(pkg.dependencies['@supabase/supabase-js']).toBeUndefined()
     expect(pkg.dependencies.postgres).toBeUndefined()
     expect(pkg.devDependencies['drizzle-kit']).toBeUndefined()
     expect(pkg.dependencies.next).toBe('16.1.6')

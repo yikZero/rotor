@@ -36,4 +36,5 @@ Next.js App Router project.
 ```bash
 claude skill install vercel-labs/next-skills/next-best-practices       # Next.js best practices
 claude skill install vercel-labs/agent-skills/react-best-practices      # React performance optimization
+claude skill install supabase/agent-skills/postgres-best-practices     # Postgres best practices (if using Supabase)
 ```

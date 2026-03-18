@@ -38,12 +38,11 @@ export const MODULES: Record<string, ModuleDefinition> = {
   },
   drizzle: {
     name: 'drizzle',
-    label: 'Drizzle + Supabase',
+    label: 'Drizzle',
     hint: 'Database',
     files: ['lib/db.ts', 'lib/schema.ts', 'drizzle.config.ts'],
     dependencies: {
       'drizzle-orm': '0.45.1',
-      '@supabase/supabase-js': '2.99.1',
       postgres: '3.4.8',
     },
     devDependencies: {
