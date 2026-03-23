@@ -15,6 +15,7 @@ export const MODULES: Record<string, ModuleDefinition> = {
     hint: 'UI component library (Base UI)',
     files: ['components.json', 'lib/utils.ts', 'components/ui'],
     dependencies: {
+      '@base-ui/react': '1.3.0',
       'class-variance-authority': '0.7.1',
       clsx: '2.1.1',
       'tailwind-merge': '3.5.0',
